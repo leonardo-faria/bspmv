@@ -5,7 +5,7 @@
  *      Author: leonardo
  */
 
-#include <blockcsr.h>
+#include "blockcsr.h"
 #include <vector>
 #include <algorithm>
 #include <stdio.h>

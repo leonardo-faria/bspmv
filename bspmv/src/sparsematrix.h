@@ -10,6 +10,7 @@
 #include <iostream>
 #include <cuda_runtime.h>
 #include <stdlib.h>
+#include "globals.h"
 class coo_sparse_matrix;
 
 class sparse_matrix {

@@ -11,9 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sparsematrix.h"
-//#include "blockell.h"
+#include "blockell.h"
 #include "blockcsr.h"
-
+#include <cuda.h>
+#include "ell.cuh"
 int main(int argc, char **argv)
 {
 	coo_sparse_matrix coo("../matrices/cage4.mtx");
