@@ -10,9 +10,10 @@
 #define BLOCKELL_H_
 
 class block_ell : public sparse_matrix {
-	unsigned int block_width=BLOCK_ENTRY_W;
-	unsigned int block_height=BLOCK_ENTRY_H;
-	unsigned int block_size=BLOCK_ENTRY_W*BLOCK_ENTRY_H;
+	unsigned int block_width;
+	unsigned int block_height;
+	unsigned int block_size;
+	unsigned int block_rows;
 	unsigned int max_blocks;
 	unsigned int size_ja;
 	unsigned int size_as;
@@ -54,6 +55,10 @@ public:
 
 	unsigned int getSizeJa() const {
 		return size_ja;
+	}
+
+	unsigned int getBlockRows() const {
+		return block_rows;
 	}
 
 	;

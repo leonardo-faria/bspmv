@@ -17,10 +17,17 @@
 #include "ell.cuh"
 int main(int argc, char **argv)
 {
-	coo_sparse_matrix coo("../matrices/cage4.mtx");
+	coo_sparse_matrix coo("matrices/test.mtx");
 	coo_sparse_matrix* c = coo.to_coo();
-
-	block_csr b(coo);
+	block_ell b(coo);
+	double* x=(double*) malloc(sizeof(double)*(b.getCols()));
+	for (int i = 0; i < b.getCols(); ++i) {
+		x[i]=1;
+	}
+	double* y=(double*) malloc(sizeof(double)*b.getRows());
+	cuda_ellpack_matrixvector(b,x,y);
+	free(x);
+	free(y);
 
 
 }

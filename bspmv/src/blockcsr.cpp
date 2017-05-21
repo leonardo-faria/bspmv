@@ -32,6 +32,9 @@ void v_redux_csr(std::vector<unsigned int> &v, unsigned int block_w) {
 	}
 }
 block_csr::block_csr(sparse_matrix &s) {
+	block_width = BLOCK_ENTRY_H;
+	block_height = BLOCK_ENTRY_W;
+	block_size = BLOCK_ENTRY_W * BLOCK_ENTRY_H;
 	coo_sparse_matrix* coo = s.to_coo();
 	unsigned int n_blocks_rows = coo->getRows() / block_height;
 	if (coo->getRows() % block_height != 0)

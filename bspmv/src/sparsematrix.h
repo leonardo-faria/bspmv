@@ -15,9 +15,9 @@ class coo_sparse_matrix;
 
 class sparse_matrix {
 protected:
-	int nonzeros=0;
-	int rows=0;
-	int collumns=0;
+	int nonzeros;
+	int rows;
+	int collumns;
 
 public:
 	sparse_matrix();

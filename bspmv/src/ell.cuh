@@ -8,7 +8,7 @@
 #ifndef ELL_CUH_
 #define ELL_CUH_
 
-#define BLOCK_SIZE_X 1
+#define BLOCK_SIZE_X 2
 #define BLOCK_SIZE_Y 1
 #define BLOCK_SIZE_Z 1
 #define GRID_SIZE_X 1
