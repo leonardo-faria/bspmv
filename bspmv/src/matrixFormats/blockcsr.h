@@ -15,6 +15,7 @@ class block_csr : public sparse_matrix {
 	unsigned int size_irp;
 	unsigned int size_ja;
 	unsigned int size_as;
+	unsigned int block_rows;
 	unsigned int* cpu_irp;
 	unsigned int* cpu_ja;
 	double* cpu_as;
@@ -58,6 +59,10 @@ public:
 
 	unsigned int getSizeJa() const {
 		return size_ja;
+	}
+
+	unsigned int getBlockRows() const {
+		return block_rows;
 	}
 
 	;

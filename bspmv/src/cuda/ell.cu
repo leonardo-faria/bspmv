@@ -114,7 +114,7 @@ __global__ void device_cuda_ellpack_matrixvector_simple_mxn(double* as, unsigned
 				a++;
 			}
 		}
-		as_off += bes;
+		as_off += bes*BlockSize;
 	}
 	__syncthreads();
 	if (BlockSize >= 512) {
