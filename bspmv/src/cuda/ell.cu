@@ -1,5 +1,12 @@
 #include "ell.cuh"
 #include <stdio.h>
+#define CHECK_CUDA_ERROR error = cudaGetLastError();\
+  if(error != cudaSuccess)\
+  {\
+    printf("CUDA error%d: %s\n",error_number, cudaGetErrorString(error));\
+  }	error_number++;
+
+
 #define SUM_POSITIONS_3(offset) \
 	{\
 		sdata[tid_0] += sdata[tid_0 + offset*3];\
@@ -42,7 +49,7 @@ __device__ void warpReduce_mxn(volatile double *sdata, unsigned int tid_0, unsig
 		SUM_POSITIONS_H(beh, 4)
 	if (BlockSize >= 4)
 		SUM_POSITIONS_H(beh, 2)
-	if (BlockSize >= 2){
+	if (BlockSize >= 2) {
 		SUM_POSITIONS_H(beh, 1)
 	}
 }
@@ -97,7 +104,7 @@ template<unsigned int BlockSize>
 __global__ void device_cuda_ellpack_matrixvector_simple_mxn(double* as, unsigned int* ja, double* x, double* y, unsigned int max_n_blocks, unsigned int beh, unsigned int bew) {
 	extern __shared__ double sdata[];
 	unsigned int tid = threadIdx.x;
-	unsigned int tid_0=tid*beh;
+	unsigned int tid_0 = tid * beh;
 	unsigned int bid = blockIdx.x;
 	unsigned int bes = beh * bew;
 	unsigned int as_off = (bid * max_n_blocks + tid) * bes;
@@ -114,7 +121,7 @@ __global__ void device_cuda_ellpack_matrixvector_simple_mxn(double* as, unsigned
 				a++;
 			}
 		}
-		as_off += bes*BlockSize;
+		as_off += bes * BlockSize;
 	}
 	__syncthreads();
 	if (BlockSize >= 512) {
@@ -147,29 +154,26 @@ __host__ void cuda_ellpack_matrixvector(block_ell &matrix, double* x, double* y)
 	double* d_as;
 	double* d_x;
 	double* d_y;
+	int error_number=0;
+	cudaError_t error;
 
-	cudaMalloc((void**) &d_ja, matrix.getSizeJa() * sizeof(unsigned int));
-	cudaMalloc((void**) &d_as, matrix.getSizeAs() * sizeof(double));
+	cudaMalloc((void**) &d_ja, matrix.getSizeJa() * sizeof(unsigned int)); CHECK_CUDA_ERROR
+	cudaMalloc((void**) &d_as, matrix.getSizeAs() * sizeof(double));CHECK_CUDA_ERROR
 
-	cudaMalloc((void**) &d_y, (matrix.getRows() + matrix.getBlockHeight() - matrix.getRows() % matrix.getBlockHeight()) * sizeof(double));
-	cudaMalloc((void**) &d_x, matrix.getCols() * sizeof(double));
+	cudaMalloc((void**) &d_y, (matrix.getRows() + matrix.getBlockHeight() - matrix.getRows() % matrix.getBlockHeight()) * sizeof(double));CHECK_CUDA_ERROR
+	cudaMalloc((void**) &d_x, matrix.getCols() * sizeof(double));CHECK_CUDA_ERROR
 
-	cudaMemcpy(d_ja, matrix.getCpuJa(), matrix.getSizeJa() * sizeof(unsigned int), cudaMemcpyHostToDevice);
-	cudaMemcpy(d_as, matrix.getCpuAs(), matrix.getSizeAs() * sizeof(double), cudaMemcpyHostToDevice);
-	cudaMemcpy(d_x, x, matrix.getCols() * sizeof(double), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_ja, matrix.getCpuJa(), matrix.getSizeJa() * sizeof(unsigned int), cudaMemcpyHostToDevice);CHECK_CUDA_ERROR
+	cudaMemcpy(d_as, matrix.getCpuAs(), matrix.getSizeAs() * sizeof(double), cudaMemcpyHostToDevice);CHECK_CUDA_ERROR
+	cudaMemcpy(d_x, x, matrix.getCols() * sizeof(double), cudaMemcpyHostToDevice);CHECK_CUDA_ERROR
 	//device_cuda_ellpack_matrixvector_simple_3x3<BLOCK_SIZE_X> <<<matrix.getBlockRows(), BLOCK_SIZE_X>>>(d_as, d_ja, d_x, d_y, matrix.getMaxBlocks());
-	printf("calling with<%d> <<<%d,%d,%xSize>>> (a,j,x,y,%d,%d,%d)\n",BLOCK_SIZE_X,matrix.getBlockRows(), BLOCK_SIZE_X, BLOCK_SIZE_X * matrix.getBlockHeight(),matrix.getMaxBlocks(), matrix.getBlockHeight(), matrix.getBlockWidth());
 	device_cuda_ellpack_matrixvector_simple_mxn<BLOCK_SIZE_X> <<<matrix.getBlockRows(), BLOCK_SIZE_X, BLOCK_SIZE_X * matrix.getBlockHeight() * sizeof(double)>>>(d_as, d_ja, d_x, d_y,
-		matrix.getMaxBlocks(), matrix.getBlockHeight(), matrix.getBlockWidth());
+			matrix.getMaxBlocks(), matrix.getBlockHeight(), matrix.getBlockWidth());CHECK_CUDA_ERROR
 
-	cudaMemcpy(y, d_y, matrix.getRows() * sizeof(double), cudaMemcpyDeviceToHost);
+	cudaMemcpy(y, d_y, matrix.getRows() * sizeof(double), cudaMemcpyDeviceToHost);CHECK_CUDA_ERROR
 
-	cudaFree(d_ja);
-	cudaFree(d_as);
-	cudaFree(d_y);
-	cudaFree(d_x);
-
-	for (int var = 0; var < matrix.getRows(); ++var) {
-		printf("%f,", y[var]);
-	}
+	cudaFree(d_ja);CHECK_CUDA_ERROR
+	cudaFree(d_as);CHECK_CUDA_ERROR
+	cudaFree(d_y);CHECK_CUDA_ERROR
+	cudaFree(d_x);CHECK_CUDA_ERROR
 }

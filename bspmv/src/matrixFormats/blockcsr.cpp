@@ -18,7 +18,7 @@ unsigned int get_csr_block_index(unsigned int* ja_row, unsigned int row_size, un
 			return i;
 	}
 	printf("ERROR with construction.");
-	exit(1);
+	std::exit(1);
 }
 
 void v_redux_csr(std::vector<unsigned int> &v, unsigned int block_w) {
