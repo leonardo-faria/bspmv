@@ -1,29 +1,39 @@
 #include <stdio.h>
-#include "testCsr.h"
-#include "../cuda/ell.cuh"
-#include "cpu_coo.h"
+#include <cstdlib>
 
-void testEllforMatrix(char* filename) {
+#include "cpu_coo.h"
+#include "../matrixFormats/blockell.h"
+#include "../cuda/ell.cuh"
+void testEllforMatrix(char* filename,unsigned int blockSize) {
 	coo_sparse_matrix coo(filename);
 	block_ell ell(coo);
-	double* xcoo = (double*) malloc(sizeof(double) * (coo.getCols()));
-	double* xell = (double*) malloc(sizeof(double) * (coo.getCols()));
+	double* xcoo = (double*) malloc(sizeof(double) * coo.getCols());
+	double* xell = (double*) malloc(sizeof(double) * coo.getCols());
+	double* ycoo = (double*) malloc(sizeof(double) * coo.getRows());
+	double* yell = (double*) malloc(sizeof(double) * coo.getRows());
+
 	for (int i = 0; i < coo.getCols(); ++i) {
 		xcoo[i] = 1;
 		xell[i] = 1;
 	}
-	double* ycoo = (double*) malloc(sizeof(double) * coo.getRows());
-	double* yell = (double*) malloc(sizeof(double) * coo.getRows());
+
 	matrixvector(coo, xcoo, ycoo);
-	cuda_ellpack_matrixvector(ell, xell, yell);
+
+
+	cuda_ellpack_matrixvector(ell.getCpuJa(),ell.getSizeJa(),ell.getCpuAs(),ell.getSizeAs(),ell.getCols(),ell.getRows(),ell.getBlockHeight(),ell.getBlockWidth(),ell.getBlockRows(),ell.getMaxBlocks(), xell, yell,blockSize);
+
+
 	int good = 0;
 	for (int i = 0; i < coo.getRows(); ++i) {
 		if (yell[i] != ycoo[i]) {
-//			printf("%d:coo %f\tcsr %f\n",i,ycoo[i],ycsr[i]);
+//			printf("ell %d:coo %f\tell %f\n", i, ycoo[i], yell[i]);
 		} else
 			good++;
 	}
-	printf("good cudacpu:%d of %d\n", good, coo.getRows());
+
+
+	printf("good ell-coo:%d of %d\n", good, coo.getRows());
+
 	free(xcoo);
 	free(xell);
 	free(ycoo);

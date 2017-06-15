@@ -89,6 +89,8 @@ block_ell::block_ell(sparse_matrix & s) {
 		cpu_as[block_h * block_size * max_blocks + block_index * block_size + coo->getCpuJa()[i] - cpu_ja[block_index + max_blocks * block_h]
 				+ (coo->getCpuIrp()[i] - (block_h * block_height)) * block_width] = coo->getCpuAs()[i];
 	}
+
+	printf("ellpack fill in ratio: %f:\n",((double) coo->getNonz())/((double)(size_ja*block_size)));
 }
 
 block_ell::~block_ell() {

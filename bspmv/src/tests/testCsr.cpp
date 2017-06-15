@@ -2,8 +2,10 @@
 #include "testCsr.h"
 #include "../cuda/csr.cuh"
 #include "cpu_coo.h"
+#include "../matrixFormats/blockcsr.h"
+#include <cstdlib>
 
-void testCsrforMatrix(char* filename) {
+void testCsrforMatrix(char* filename, unsigned int blockSize) {
 	coo_sparse_matrix coo(filename);
 	block_csr csr(coo);
 	double* xcoo = (double*) malloc(sizeof(double) * (coo.getCols()));
@@ -15,7 +17,7 @@ void testCsrforMatrix(char* filename) {
 	double* ycoo = (double*) malloc(sizeof(double) * coo.getRows());
 	double* ycsr = (double*) malloc(sizeof(double) * coo.getRows());
 	matrixvector(coo, xcoo, ycoo);
-	cuda_csr_matrixvector(csr, xcsr, ycsr);
+	cuda_csr_matrixvector(csr.getCpuIrp(),csr.getSizeIrp(), csr.getCpuJa(),csr.getSizeJa(), csr.getCpuAs(),csr.getSizeAs(),csr.getCols(),csr.getRows(),csr.getBlockHeight(),csr.getBlockWidth(),csr.getBlockRows(), xcsr, ycsr, blockSize);
 	int good = 0;
 	for (int i = 0; i < coo.getRows(); ++i) {
 		if (ycsr[i] != ycoo[i]) {

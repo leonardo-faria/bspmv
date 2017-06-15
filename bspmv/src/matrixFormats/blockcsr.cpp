@@ -32,9 +32,9 @@ void v_redux_csr(std::vector<unsigned int> &v, unsigned int block_w) {
 	}
 }
 block_csr::block_csr(sparse_matrix &s) {
-	collumns=s.getCols();
-		rows=s.getRows();
-		nonzeros=s.getNonz();
+	collumns = s.getCols();
+	rows = s.getRows();
+	nonzeros = s.getNonz();
 	block_width = BLOCK_ENTRY_H;
 	block_height = BLOCK_ENTRY_W;
 	block_size = BLOCK_ENTRY_W * BLOCK_ENTRY_H;
@@ -80,6 +80,8 @@ block_csr::block_csr(sparse_matrix &s) {
 		cpu_as[(cpu_irp[block_h] + block_index) * block_size + coo->getCpuJa()[i] - cpu_ja[cpu_irp[block_h] + block_index] + (coo->getCpuIrp()[i] - (block_h * block_height)) * block_width] =
 				coo->getCpuAs()[i];
 	}
+	printf("csr fill in ratio: %f:\n",((double) coo->getNonz())/((double)(size_ja*block_size)));
+
 }
 
 block_csr::~block_csr() {

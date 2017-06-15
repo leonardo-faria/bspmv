@@ -7,8 +7,6 @@
 
 #ifndef SPARSEMATRIX_H_
 #define SPARSEMATRIX_H_
-#include <iostream>
-#include <cuda_runtime.h>
 #include "../globals.h"
 class coo_sparse_matrix;
 
@@ -45,12 +43,7 @@ public:
 		return rows;
 	}
 
-	static void CheckCudaErrorAux(const char *file, unsigned line, const char *statement, cudaError_t err) {
-		if (err == cudaSuccess)
-			return;
-		std::cerr << statement << " returned " << cudaGetErrorString(err) << "(" << err << ") at " << file << ":" << line << std::endl;
-		exit(1);
-	}
+
 };
 
 class coo_sparse_matrix: public sparse_matrix {

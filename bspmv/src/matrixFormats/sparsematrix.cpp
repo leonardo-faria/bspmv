@@ -8,6 +8,7 @@
 #include "sparsematrix.h"
 
 #include <stdio.h>
+#include <iostream>
 #include <string.h>
 #include "mmio.h"
 #define CUDA_CHECK_RETURN(value) CheckCudaErrorAux(__FILE__,__LINE__, #value, value)

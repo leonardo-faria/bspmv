@@ -8,7 +8,7 @@
 #ifndef TESTCSR_H_
 #define TESTCSR_H_
 
-void testCsrforMatrix(char* filename);
+void testCsrforMatrix(char* filename,unsigned int blockSize);
 
 
 

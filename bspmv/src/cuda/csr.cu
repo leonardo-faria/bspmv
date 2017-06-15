@@ -1,38 +1,26 @@
 #include "csr.cuh"
-#include <stdio.h>
-#define CHECK_CUDA_ERROR error = cudaGetLastError();\
-  if(error != cudaSuccess)\
-  {\
-    printf("CUDA error%d: %s\n",error_number, cudaGetErrorString(error));\
-  }	error_number++;
+#include "cudaMacros.cuh"
 
-#define SUM_POSITIONS_H(beh,offset) \
-	{\
-		for(i=0;i<beh;i++){\
-			sdata[tid_0+i]+=sdata[tid_0+i+offset*beh];\
-		}\
-	}
-
-template<unsigned int BlockSize>
-__device__ void warpReduce_mxn(volatile double *sdata, unsigned int tid_0, unsigned int beh) {
+template<unsigned int blockSize, unsigned int beh>
+__device__ void warpReduce_mxn(volatile double *sdata, unsigned int tid) {
 	int i;
-	if (BlockSize >= 64)
+	if (blockSize >= 64)
 		SUM_POSITIONS_H(beh, 32)
-	if (BlockSize >= 32)
+	if (blockSize >= 32)
 		SUM_POSITIONS_H(beh, 16)
-	if (BlockSize >= 16)
+	if (blockSize >= 16)
 		SUM_POSITIONS_H(beh, 8)
-	if (BlockSize >= 8)
+	if (blockSize >= 8)
 		SUM_POSITIONS_H(beh, 4)
-	if (BlockSize >= 4)
+	if (blockSize >= 4)
 		SUM_POSITIONS_H(beh, 2)
-	if (BlockSize >= 2) {
+	if (blockSize >= 2) {
 		SUM_POSITIONS_H(beh, 1)
 	}
 }
 
-template<unsigned int BlockSize>
-__global__ void device_cuda_csr_matrixvector_simple_mxn(double* as, unsigned int *irp, unsigned int* ja, double* x, double* y, unsigned int beh, unsigned int bew) {
+template<unsigned int BlockSize, unsigned int beh, unsigned int bew>
+__global__ void device_cuda_csr_matrixvector_simple_mxn(double* as, unsigned int *irp, unsigned int* ja, double* x, double* y) {
 
 	extern __shared__ double sdata[];
 	unsigned int i, j, irp_off;
@@ -48,7 +36,6 @@ __global__ void device_cuda_csr_matrixvector_simple_mxn(double* as, unsigned int
 	for (irp_off = irp[bid] + tid; irp_off < irp[bid + 1]; irp_off += BlockSize) {
 		a = 0;
 		as_off = (irp[bid] + tid) * bes;
-
 		for (i = 0; i < beh; ++i) {
 			for (j = 0; j < bew; ++j) {
 				sdata[tid_0 + i] += x[ja[irp_off] + j] * as[as_off + a++];
@@ -56,7 +43,6 @@ __global__ void device_cuda_csr_matrixvector_simple_mxn(double* as, unsigned int
 		}
 		as += BlockSize * bes;
 	}
-
 	__syncthreads();
 	if (BlockSize >= 512) {
 		if (tid < 256)
@@ -74,43 +60,58 @@ __global__ void device_cuda_csr_matrixvector_simple_mxn(double* as, unsigned int
 		__syncthreads();
 	}
 	if (tid < 32)
-		warpReduce_mxn<BlockSize>(sdata, tid_0, beh);
+		warpReduce_mxn<BlockSize, beh>(sdata, tid_0);
+
 	if (tid == 0) {
-		for (i = 0; i < beh; i++)
-			y[blockIdx.x * beh + i] = sdata[i];
+		memcpy(y + blockIdx.x * beh, sdata, sizeof(double) * beh);
 	}
 }
 
-__host__ void cuda_csr_matrixvector(block_csr &matrix, double* x, double* y) {
+__host__ double cuda_csr_matrixvector(unsigned int *h_irp, unsigned int irp_size, unsigned int* h_ja, unsigned int ja_size, double* h_as, unsigned int as_size, unsigned int cols, unsigned int rows, unsigned int beh, unsigned int bew, unsigned int blockRows, double* h_x, double* h_y, unsigned int blockSize) {
+	double* x_off = (double*) calloc(cols + bew, sizeof(double));
+	memcpy(x_off, h_x, cols * sizeof(double));
+
 	unsigned int* d_irp;
 	unsigned int* d_ja;
 	double* d_as;
 	double* d_x;
 	double* d_y;
+	float milliseconds;
 	cudaError_t error;
-	int error_number=0;
 
-	cudaMalloc((void**) &d_irp, matrix.getSizeIrp() * sizeof(unsigned int)); CHECK_CUDA_ERROR
-	cudaMalloc((void**) &d_ja, matrix.getSizeJa() * sizeof(unsigned int));CHECK_CUDA_ERROR
-	cudaMalloc((void**) &d_as, matrix.getSizeAs() * sizeof(double));CHECK_CUDA_ERROR
+	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_irp, irp_size * sizeof(unsigned int)))
+	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_ja, ja_size * sizeof(unsigned int)))
+	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_as, as_size* sizeof(double)))
+	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_y, (rows+ beh - rows % beh) * sizeof(double)))
+	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_x, (cols + bew) * sizeof(double)))
 
-	cudaMalloc((void**) &d_y, (matrix.getRows() + matrix.getBlockHeight() - matrix.getRows() % matrix.getBlockHeight()) * sizeof(double));CHECK_CUDA_ERROR
-	cudaMalloc((void**) &d_x, matrix.getCols() * sizeof(double));CHECK_CUDA_ERROR
+	CHECK_CUDA_ERROR(cudaMemcpy(d_irp, h_irp, irp_size * sizeof(unsigned int), cudaMemcpyHostToDevice))
+	CHECK_CUDA_ERROR(cudaMemcpy(d_ja, h_ja, ja_size * sizeof(unsigned int), cudaMemcpyHostToDevice))
+	CHECK_CUDA_ERROR(cudaMemcpy(d_as, h_as, as_size * sizeof(double), cudaMemcpyHostToDevice))
+	CHECK_CUDA_ERROR(cudaMemcpy(d_x, x_off, (cols+ bew) * sizeof(double), cudaMemcpyHostToDevice))
 
-	cudaMemcpy(d_irp, matrix.getCpuIrp(), matrix.getSizeIrp() * sizeof(unsigned int), cudaMemcpyHostToDevice);CHECK_CUDA_ERROR
-	cudaMemcpy(d_ja, matrix.getCpuJa(), matrix.getSizeJa() * sizeof(unsigned int), cudaMemcpyHostToDevice);CHECK_CUDA_ERROR
-	cudaMemcpy(d_as, matrix.getCpuAs(), matrix.getSizeAs() * sizeof(double), cudaMemcpyHostToDevice);CHECK_CUDA_ERROR
-	cudaMemcpy(d_x, x, matrix.getCols() * sizeof(double), cudaMemcpyHostToDevice);CHECK_CUDA_ERROR
-	printf("calling with<%d> <<<%d,%d,%xSize>>> (a,j,x,y,%d,%d)\n",BLOCK_SIZE_X,matrix.getBlockRows(), BLOCK_SIZE_X, BLOCK_SIZE_X * matrix.getBlockHeight(), matrix.getBlockHeight(), matrix.getBlockWidth());
+	cudaEvent_t start, stop;
+	CHECK_CUDA_ERROR(cudaEventCreate(&start))
+	CHECK_CUDA_ERROR(cudaEventCreate(&stop))
+	CHECK_CUDA_ERROR(cudaEventRecord(start))
+	SWITCH_BLOCKENTRY_SIZE_AND_CUDA_BLOCK_SIZE(
+			blockSize, beh, bew,
+			device_cuda_csr_matrixvector_simple_mxn,
+			blockRows, blockSize, 2 * blockSize * beh* sizeof(double),
+			(d_as, d_irp, d_ja, d_x, d_y))
+	CHECK_CUDA_ERROR(cudaEventRecord(stop))
 
-	device_cuda_csr_matrixvector_simple_mxn<BLOCK_SIZE_X> <<<matrix.getBlockRows(), BLOCK_SIZE_X, BLOCK_SIZE_X * matrix.getBlockHeight() * sizeof(double)>>>(d_as, d_irp, d_ja, d_x, d_y,
-			matrix.getBlockHeight(), matrix.getBlockWidth());CHECK_CUDA_ERROR
-	cudaMemcpy(y, d_y, matrix.getRows() * sizeof(double), cudaMemcpyDeviceToHost);CHECK_CUDA_ERROR
+	CHECK_CUDA_ERROR(cudaMemcpy(h_y, d_y,rows * sizeof(double), cudaMemcpyDeviceToHost))
 
-	cudaFree(d_ja);CHECK_CUDA_ERROR
-	cudaFree(d_as);CHECK_CUDA_ERROR
-	cudaFree(d_irp);CHECK_CUDA_ERROR
-	cudaFree(d_y);CHECK_CUDA_ERROR
-	cudaFree(d_x);CHECK_CUDA_ERROR
+	CHECK_CUDA_ERROR(cudaEventSynchronize(stop))
+	CHECK_CUDA_ERROR(cudaEventElapsedTime(&milliseconds, start, stop))
+
+	CHECK_CUDA_ERROR(cudaFree(d_ja))
+	CHECK_CUDA_ERROR(cudaFree(d_as))
+	CHECK_CUDA_ERROR(cudaFree(d_irp))
+	CHECK_CUDA_ERROR(cudaFree(d_y))
+	CHECK_CUDA_ERROR(cudaFree(d_x))
+
+	return milliseconds * 1000;
 }
 
