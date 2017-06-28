@@ -6,7 +6,7 @@
 #include "../cuda/ell.cuh"
 void testEllforMatrix(char* filename,unsigned int blockSize) {
 	coo_sparse_matrix coo(filename);
-	block_ell ell(coo);
+	block_ell ell(coo,5,1);
 	double* xcoo = (double*) malloc(sizeof(double) * coo.getCols());
 	double* xell = (double*) malloc(sizeof(double) * coo.getCols());
 	double* ycoo = (double*) malloc(sizeof(double) * coo.getRows());
@@ -20,13 +20,13 @@ void testEllforMatrix(char* filename,unsigned int blockSize) {
 	matrixvector(coo, xcoo, ycoo);
 
 
-	cuda_ellpack_matrixvector(ell.getCpuJa(),ell.getSizeJa(),ell.getCpuAs(),ell.getSizeAs(),ell.getCols(),ell.getRows(),ell.getBlockHeight(),ell.getBlockWidth(),ell.getBlockRows(),ell.getMaxBlocks(), xell, yell,blockSize);
+	cuda_ellpack_matrixvector(ell.getCpuJa(),ell.getSizeJa(),ell.getCpuAs(),ell.getSizeAs(),ell.getCols(),ell.getRows(),ell.getBlockHeight(),ell.getBlockWidth(),ell.getBlockRows(),ell.getMaxBlocks(), xell, yell,256);
 
 
 	int good = 0;
 	for (int i = 0; i < coo.getRows(); ++i) {
 		if (yell[i] != ycoo[i]) {
-//			printf("ell %d:coo %f\tell %f\n", i, ycoo[i], yell[i]);
+			printf("ell %d:coo %f\tell %f\n", i, ycoo[i], yell[i]);
 		} else
 			good++;
 	}

@@ -20,7 +20,7 @@ class block_ell : public sparse_matrix {
 	unsigned int * cpu_ja;
 	double* cpu_as;
 public:
-	block_ell(sparse_matrix &s);
+	block_ell(sparse_matrix & s,unsigned int beh,unsigned int bew);
 	virtual ~block_ell();
 	virtual coo_sparse_matrix* to_coo(){return 0;};
 	virtual void from_coo(coo_sparse_matrix coo) {

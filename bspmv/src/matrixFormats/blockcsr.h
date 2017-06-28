@@ -20,7 +20,7 @@ class block_csr : public sparse_matrix {
 	unsigned int* cpu_ja;
 	double* cpu_as;
 public:
-	block_csr(sparse_matrix &s);
+	block_csr(sparse_matrix &s,unsigned int beh,unsigned int bew);
 	virtual ~block_csr();
 	virtual coo_sparse_matrix* to_coo(){return 0;};
 	virtual void from_coo(coo_sparse_matrix coo) {

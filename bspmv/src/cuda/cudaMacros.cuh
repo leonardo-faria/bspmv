@@ -8,6 +8,8 @@
 #ifndef CUDAMACROS_H_
 #define CUDAMACROS_H_
 
+#define TRIES 5
+
 #define TEST_CUDA 1
 #if TEST_CUDA
 #define CHECK_CUDA_ERROR(function)\
@@ -30,11 +32,10 @@
 	}
 
 #define SUM_POSITIONS_H(BEH,OFFSET) \
-	{\
+		_Pragma("unroll")\
 		for(i=0;i<BEH;i++){\
-			sdata[tid+i]+=sdata[tid+i+OFFSET*BEH];\
+			sdata[tid_0+i]+=sdata[tid_0+i+OFFSET*BEH];\
 		}\
-	}
 
 #define SUM_POSITIONS_4(offset)\
 	{\

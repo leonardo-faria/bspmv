@@ -32,13 +32,13 @@ void v_redux_ell(std::vector<unsigned int> &v, unsigned int block_w) {
 			ja = v[i];
 	}
 }
-block_ell::block_ell(sparse_matrix & s) {
+block_ell::block_ell(sparse_matrix & s,unsigned int beh,unsigned int bew) {
 	collumns=s.getCols();
 	rows=s.getRows();
 	nonzeros=s.getNonz();
-	block_width = BLOCK_ENTRY_W;
-	block_height = BLOCK_ENTRY_H;
-	block_size = BLOCK_ENTRY_W * BLOCK_ENTRY_H;
+	block_width = bew;
+	block_height = beh;
+	block_size = block_width * block_height;
 	coo_sparse_matrix* coo = s.to_coo();
 	if (!coo) {
 		printf("Invalid argument (to_coo not implemented?).\n");
@@ -90,7 +90,7 @@ block_ell::block_ell(sparse_matrix & s) {
 				+ (coo->getCpuIrp()[i] - (block_h * block_height)) * block_width] = coo->getCpuAs()[i];
 	}
 
-	printf("ellpack fill in ratio: %f:\n",((double) coo->getNonz())/((double)(size_ja*block_size)));
+//	printf("ellpack fill in ratio: %f:\n",((double) coo->getNonz())/((double)(size_ja*block_size)));
 }
 
 block_ell::~block_ell() {

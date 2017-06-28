@@ -11,9 +11,6 @@
 
 
 
-#define BLOCK_ENTRY_H 3
-#define BLOCK_ENTRY_W 3
-#define BLOCK_ENTRY_S BLOCK_ENTRY_H*BLOCK_ENTRY_W
 
 
 #endif /* GLOBALS_H_ */

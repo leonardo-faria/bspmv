@@ -8,6 +8,7 @@
 #include "sparsematrix.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <string.h>
 #include "mmio.h"

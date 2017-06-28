@@ -7,7 +7,6 @@
 
 #ifndef SPARSEMATRIX_H_
 #define SPARSEMATRIX_H_
-#include "../globals.h"
 class coo_sparse_matrix;
 
 class sparse_matrix {

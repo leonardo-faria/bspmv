@@ -2,7 +2,7 @@
 #include "cudaMacros.cuh"
 
 template<unsigned int blockSize, unsigned int beh>
-__device__ void warpReduce_mxn(volatile double *sdata, unsigned int tid) {
+__device__ void warpReduce_mxn(volatile double *sdata, unsigned int tid_0) {
 	int i;
 	if (blockSize >= 64)
 		SUM_POSITIONS_H(beh, 32)
@@ -78,7 +78,7 @@ __host__ double cuda_csr_matrixvector(unsigned int *h_irp, unsigned int irp_size
 	double* d_y;
 	float milliseconds;
 	cudaError_t error;
-
+	 cudaSetDevice(0);
 	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_irp, irp_size * sizeof(unsigned int)))
 	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_ja, ja_size * sizeof(unsigned int)))
 	CHECK_CUDA_ERROR(cudaMalloc((void** ) &d_as, as_size* sizeof(double)))
