@@ -36,7 +36,8 @@ int main(int argc, char **argv) {
 		else if (strcmp(argv[1], "-ell") == 0)
 			b_spmv_ell("matrices/test.mtx", 32);
 	if (argc == 1) {
-		testEllforMatrix("matrices/test.mtx", 32);
+//		testEllforMatrix("matrices/test.mtx", 256);
+		testCsrforMatrix("/media/leonardo/EA1696FC1696C949/matrices from linux/data 32768 cube Elements penalty 10 P2 basis.mtx", 2);
 //		b_spmv_csr("matrices/test.mtx", 32);
 //		b_spmv_ell("matrices/test.mtx", 32);
 	}

@@ -20,7 +20,7 @@ void testEllforMatrix(char* filename,unsigned int blockSize) {
 	matrixvector(coo, xcoo, ycoo);
 
 
-	cuda_ellpack_matrixvector(ell.getCpuJa(),ell.getSizeJa(),ell.getCpuAs(),ell.getSizeAs(),ell.getCols(),ell.getRows(),ell.getBlockHeight(),ell.getBlockWidth(),ell.getBlockRows(),ell.getMaxBlocks(), xell, yell,256);
+	cuda_ellpack_matrixvector(ell.getCpuJa(),ell.getSizeJa(),ell.getCpuAs(),ell.getSizeAs(),ell.getCols(),ell.getRows(),ell.getBlockHeight(),ell.getBlockWidth(),ell.getBlockRows(),ell.getMaxBlocks(), xell, yell,blockSize);
 
 
 	int good = 0;

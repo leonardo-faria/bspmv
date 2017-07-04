@@ -52,6 +52,7 @@ __global__ void device_cuda_ellpack_matrixvector_multithread_simple_mxn(double* 
 
 	unsigned int j;
 
+//	printf("0\tblock=%d\tthread=%d\tthreadY=%d\tvalue=%f\n", blockIdx.x, threadIdx.x, threadIdx.y, sdata[sdata_index]);
 	for (ja_off = bid * max_n_blocks + tid; ja_off < ja_end; ja_off += blockSize) {
 		for (j = 0; j < bew; ++j) {
 			sdata[sdata_index] += x[ja[ja_off] + j] * as[as_off + j];

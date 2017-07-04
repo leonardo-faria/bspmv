@@ -31,7 +31,7 @@ void v_redux_csr(std::vector<unsigned int> &v, unsigned int block_w) {
 			ja = v[i];
 	}
 }
-block_csr::block_csr(sparse_matrix &s,unsigned int beh,unsigned int bew) {
+block_csr::block_csr(sparse_matrix &s, unsigned int beh, unsigned int bew) {
 	collumns = s.getCols();
 	rows = s.getRows();
 	nonzeros = s.getNonz();
@@ -65,9 +65,11 @@ block_csr::block_csr(sparse_matrix &s,unsigned int beh,unsigned int bew) {
 	v_redux_csr(temp_ja[b_row], block_width);
 	cpu_irp[b_row + 1] = cpu_irp[b_row] + temp_ja[b_row].size();
 	size_ja = cpu_irp[b_row + 1];
-	cpu_ja = (unsigned int*) malloc(sizeof(unsigned int) * size_ja);
 	size_as = size_ja * block_size;
-	cpu_as = (double*) malloc(sizeof(double) * size_as);
+	cpu_ja = (unsigned int*) calloc(size_ja, sizeof(unsigned int));
+	cpu_as = (double*) calloc(size_as, sizeof(double));
+//	cpu_ja = (unsigned int*) malloc(sizeof(unsigned int) * size_ja);
+//	cpu_as = (double*) malloc(sizeof(double) * size_as);
 	unsigned int ja_index = 0;
 	for (int i = 0; i < temp_ja.size(); ++i) {
 		std::copy(temp_ja[i].begin(), temp_ja[i].end(), cpu_ja + ja_index);
@@ -77,9 +79,19 @@ block_csr::block_csr(sparse_matrix &s,unsigned int beh,unsigned int bew) {
 	for (unsigned int i = 0; i < coo->getNonz(); ++i) {
 		unsigned int block_h = coo->getCpuIrp()[i] / block_height;
 		unsigned int block_index = get_csr_block_index(cpu_ja + cpu_irp[block_h], cpu_irp[block_h + 1], block_width, coo->getCpuJa()[i]);
-		cpu_as[(cpu_irp[block_h] + block_index) * block_size + coo->getCpuJa()[i] - cpu_ja[cpu_irp[block_h] + block_index] + (coo->getCpuIrp()[i] - (block_h * block_height)) * block_width] =
-				coo->getCpuAs()[i];
+		cpu_as[(cpu_irp[block_h] + block_index) * block_size + coo->getCpuJa()[i] - cpu_ja[cpu_irp[block_h] + block_index] + (coo->getCpuIrp()[i] - (block_h * block_height)) * block_width] = coo->getCpuAs()[i];
 	}
+//	for (int ir = 0; ir < size_ja; ++ir) {
+//		printf("ja:%d\n",cpu_ja[ir]);
+//		for (int i = 0; i < beh; ++i) {
+//			for (int j = 0; j < bew; ++j) {
+//				printf("%f\t", cpu_as[i * bew + j + ir * beh * bew]);
+//			}
+//			printf("\n");
+//		}
+//		printf("\n");
+//		printf("\n");
+//	}
 //	for (int i = 0; i < 6; ++i) {
 //		for (int j = 0; j < 6; ++j) {
 //			printf("%f\t",cpu_as[i*6+j]);

@@ -32,7 +32,6 @@
 	}
 
 #define SUM_POSITIONS_H(BEH,OFFSET) \
-		_Pragma("unroll")\
 		for(i=0;i<BEH;i++){\
 			sdata[tid_0+i]+=sdata[tid_0+i+OFFSET*BEH];\
 		}\
