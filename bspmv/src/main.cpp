@@ -9,11 +9,10 @@
 #include <stdio.h>
 
 int main(int argc, char **argv) {
-
 	if (argc == 3)
 		if (strcmp(argv[1], "-csr") == 0) {
 			b_spmv_csr_ratio(argv[2]);
-			for (int i = 1; i <= 512; i *= 2) {
+			for (int i = 1; i <= 1024; i *= 2) {
 
 				printf("BS=%d,\n", i);
 
@@ -22,7 +21,7 @@ int main(int argc, char **argv) {
 			}
 		} else if (strcmp(argv[1], "-ell") == 0) {
 			b_spmv_ell_ratio(argv[2]);
-			for (int i = 1; i <= 512; i *= 2) {
+			for (int i = 1; i <= 1024; i *= 2) {
 
 				printf("BS=%d,\n", i);
 				b_spmv_ell(argv[2], i);
