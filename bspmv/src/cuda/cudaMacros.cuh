@@ -17,6 +17,7 @@
 	error = cudaGetLastError();\
 	if(error != cudaSuccess)\
 	{\
+	printf("%s",#function);\
 	exit(1);\
 	}
 #else
@@ -105,6 +106,9 @@
 		case 6:\
 			SWITCH_BLOCK_SIZE(BLOCKSIZE,BEH,6,OPERATION, DIMGRID, DIMBLOCK, SMEMSIZE,ARGS);\
 			break;\
+		case 16:\
+			SWITCH_BLOCK_SIZE(BLOCKSIZE,BEH,16,OPERATION, DIMGRID, DIMBLOCK, SMEMSIZE,ARGS);\
+			break;\
 		default:\
 			exit(1);\
 	}
@@ -128,6 +132,9 @@
 			break;\
 		case 6:\
 			SWITCH_BLOCKENTRY_WIDTH(BLOCKSIZE,6,BEW,OPERATION, DIMGRID, DIMBLOCK, SMEMSIZE,ARGS);\
+			break;\
+		case 16:\
+			SWITCH_BLOCKENTRY_WIDTH(BLOCKSIZE,16,BEW,OPERATION, DIMGRID, DIMBLOCK, SMEMSIZE,ARGS);\
 			break;\
 		default:\
 			exit(1);\

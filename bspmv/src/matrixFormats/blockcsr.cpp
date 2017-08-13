@@ -81,6 +81,7 @@ block_csr::block_csr(sparse_matrix &s, unsigned int beh, unsigned int bew) {
 		unsigned int block_index = get_csr_block_index(cpu_ja + cpu_irp[block_h], cpu_irp[block_h + 1], block_width, coo->getCpuJa()[i]);
 		cpu_as[(cpu_irp[block_h] + block_index) * block_size + coo->getCpuJa()[i] - cpu_ja[cpu_irp[block_h] + block_index] + (coo->getCpuIrp()[i] - (block_h * block_height)) * block_width] = coo->getCpuAs()[i];
 	}
+	printf("Size: %dx%d\t\tas size:%d\n",beh,bew,size_as);
 //	for (int ir = 0; ir < size_ja; ++ir) {
 //		printf("ja:%d\n",cpu_ja[ir]);
 //		for (int i = 0; i < beh; ++i) {
